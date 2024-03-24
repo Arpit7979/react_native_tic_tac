@@ -1,118 +1,145 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import { FlatList, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native'
+import React, { useState } from 'react'
+import Snackbar from 'react-native-snackbar'
+import Icons from './conponents/Icons';
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+export default function App() {
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+  const [isCross,setIsCross] = useState(false);
+  const [gameWinner,setGameWinner] = useState("");
+  const [gameState,setGameState] = useState( new Array(9).fill("empty",0,9))
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+  const reloadGame = () =>{
+    setIsCross(false)
+    setGameWinner("")
+    setGameState(new Array(9).fill("empty",0,9))
+  }
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+  const checkIsWinner = () =>{
+    if(gameState[0]!=="empty"&& gameState[0]===gameState[1]  && gameState[1]===gameState[2]){
+      setGameWinner(`Player ${gameState[0]} won`)
+    }
+    else if(gameState[3]!=="empty"&& gameState[3]===gameState[4]  && gameState[4]===gameState[5]){
+      setGameWinner(`Player ${gameState[3]} won`)
+    }
+    else if(gameState[6]!=="empty"&& gameState[6]===gameState[7]  && gameState[7]===gameState[8]){
+      setGameWinner(`Player ${gameState[6]} won`)
+    }
+    else if(gameState[0]!=="empty"&& gameState[0]===gameState[3]  && gameState[3]===gameState[6]){
+      setGameWinner(`Player ${gameState[0]} won`)
+    }
+    else if(gameState[1]!=="empty"&& gameState[1]===gameState[4]  && gameState[4]===gameState[7]){
+      setGameWinner(`Player ${gameState[1]} won`)
+    }
+    else if(gameState[2]!=="empty"&& gameState[2]===gameState[5]  && gameState[5]===gameState[8]){
+      setGameWinner(`Player ${gameState[2]} won`)
+    }
+    else if(gameState[0]!=="empty"&& gameState[0]===gameState[4]  && gameState[4]===gameState[8]){
+      setGameWinner(`Player ${gameState[0]} won`)
+    }
+    else if(gameState[2]!=="empty"&& gameState[2]===gameState[4]  && gameState[4]===gameState[6]){
+      setGameWinner(`Player ${gameState[2]} won`)
+    }
+    else if(!gameState.includes("empty",0)){
+      setGameWinner(`Draw Game`)
+    }
+  }
+
+  const onChangeItem = (itemNumber:number) => {
+   if(gameWinner){
+    Snackbar.show({
+      text:gameWinner
+    })
+   }
+
+   if(gameState[itemNumber]==="empty"){
+    gameState[itemNumber] = isCross ? "cross" : "circle"
+    setIsCross(!isCross)
+   }else{
+    Snackbar.show({
+      text:"position is already filled"
+    })
+   }
+
+   checkIsWinner();
+  }
+
+
+
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
-
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
+    <SafeAreaView>
+      {
+        gameWinner?(
+          <View style={styles.topBox}>
+            <Text style={styles.topBoxText}>{gameWinner}</Text>
+          </View>
+        ):(
+          <View style={styles.topBox}>
+            <Text style={styles.topBoxText}>{`Player ${isCross?"X":"O"} turn`}</Text>
+          </View>
+        )
+      }
+      <FlatList 
+      style={styles.midBox}
+      numColumns={3}
+      data={gameState}
+      renderItem={({item,index})=>(
+          <Pressable
+          style={styles.singleBox}
+          key={index}
+          onPress={()=>onChangeItem(index)}
+          >
+          <Icons name={item}/>
+          </Pressable>
+      )}
       />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
+
+      <Pressable
+      onPress={reloadGame}
+      style={styles.bottomBox}
+      >
+        <Text style={styles.bottomText}>
+          {gameWinner?"start new game":"reload the game"}
+        </Text>
+     
+      </Pressable>
     </SafeAreaView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+  topBox:{
+   margin:10,
+   padding:10,
+   backgroundColor:"red",
 
-export default App;
+  },
+  topBoxText:{
+   fontSize:20,
+   color:"#ffffff"
+  },
+  midBox:{
+   margin:10,
+   marginLeft:30,
+  },
+  singleBox:{
+   width:100,
+   height:100,
+   gap:10,
+   borderWidth:3,
+   borderColor:"#987ddd",
+   alignItems:"center",
+   justifyContent:"center"
+  },
+  bottomBox:{
+    margin:10,
+    padding:10,
+    backgroundColor:"green",
+    borderRadius:5,
+    marginTop:55,
+  },
+  bottomText:{
+    fontSize:20,
+   color:"#ffffff"
+  },
+})
